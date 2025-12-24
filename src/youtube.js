@@ -26,9 +26,13 @@ export async function getAudioUrl(videoId) {
 	// Forzar solo audio directo (no HLS/m3u8)
 	const cmd = `yt-dlp -g --cookies cookies.txt -f "bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio" --no-playlist --no-warnings https://www.youtube.com/watch?v=${videoId}`;
 	return new Promise((resolve) => {
-		exec(cmd, { timeout: 10000 }, (err, stdout, stderr) => {
+		exec(cmd, { timeout: 20000 }, (err, stdout, stderr) => {
 			if (err) {
-				console.error('yt-dlp error:', err);
+				if (err.killed && err.signal === 'SIGTERM') {
+					console.error('yt-dlp fue terminado por timeout (20s). Probablemente Render mató el proceso por ser muy largo o pesado.');
+				} else {
+					console.error('yt-dlp error:', err);
+				}
 				console.error('yt-dlp stderr:', stderr);
 				console.error('yt-dlp stdout:', stdout);
 				return resolve(null);
