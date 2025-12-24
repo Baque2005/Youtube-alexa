@@ -19,9 +19,9 @@ export async function getAudioUrl(videoId) {
 	if (cached) return cached;
 
 	// yt-dlp debe estar instalado en el entorno de Render
-	const cmd = `yt-dlp -g -f "bestaudio[ext=m4a]/bestaudio[ext=mp3]/bestaudio" https://www.youtube.com/watch?v=${videoId}`;
+	const cmd = `yt-dlp -g -f "bestaudio[ext=m4a]/bestaudio[ext=mp3]/bestaudio" --no-playlist --no-warnings https://www.youtube.com/watch?v=${videoId}`;
 	return new Promise((resolve) => {
-		exec(cmd, { timeout: 5000 }, (err, stdout) => {
+		exec(cmd, { timeout: 10000 }, (err, stdout) => {
 			if (err) {
 				console.error('yt-dlp error:', err);
 				return resolve(null);
@@ -35,4 +35,5 @@ export async function getAudioUrl(videoId) {
 			}
 		});
 	});
+}
 }
