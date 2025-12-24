@@ -1,4 +1,7 @@
 
+
+import dotenv from 'dotenv';
+dotenv.config();
 import axios from 'axios';
 import { getCached, setCached } from './cache.js';
 import { exec } from 'child_process';
@@ -7,6 +10,7 @@ const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 
 // Buscar video en YouTube
 export async function searchYouTube(query) {
+	console.log('YOUTUBE_API_KEY en searchYouTube:', YOUTUBE_API_KEY);
 	const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
 	const { data } = await axios.get(url, { timeout: 4000 });
 	return data.items?.[0] || null;
@@ -21,16 +25,19 @@ export async function getAudioUrl(videoId) {
 	// yt-dlp debe estar instalado en el entorno de Render
 	const cmd = `yt-dlp -g --cookies cookies.txt -f "bestaudio/best" --no-playlist --no-warnings https://www.youtube.com/watch?v=${videoId}`;
 	return new Promise((resolve) => {
-		exec(cmd, { timeout: 10000 }, (err, stdout) => {
+		exec(cmd, { timeout: 10000 }, (err, stdout, stderr) => {
 			if (err) {
 				console.error('yt-dlp error:', err);
+				console.error('yt-dlp stderr:', stderr);
+				console.error('yt-dlp stdout:', stdout);
 				return resolve(null);
 			}
 			const url = stdout.trim();
-			if (url && (url.endsWith('.m4a') || url.endsWith('.mp3'))) {
+			if (url) {
 				setCached(cacheKey, url, 300); // 5 minutos
 				resolve(url);
 			} else {
+				console.error('yt-dlp no devolvió una URL válida. stdout:', stdout, 'stderr:', stderr);
 				resolve(null);
 			}
 		});
