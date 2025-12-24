@@ -19,7 +19,7 @@ export async function getAudioUrl(videoId) {
 	if (cached) return cached;
 
 	// yt-dlp debe estar instalado en el entorno de Render
-	const cmd = `yt-dlp -g --cookies cookies.txt -f "bestaudio[ext=m4a]/bestaudio[ext=mp3]/bestaudio" --no-playlist --no-warnings https://www.youtube.com/watch?v=${videoId}`;
+	const cmd = `yt-dlp -g --cookies cookies.txt -f "bestaudio/best" --no-playlist --no-warnings https://www.youtube.com/watch?v=${videoId}`;
 	return new Promise((resolve) => {
 		exec(cmd, { timeout: 10000 }, (err, stdout) => {
 			if (err) {
