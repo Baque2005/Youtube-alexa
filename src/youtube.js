@@ -24,19 +24,15 @@ export async function getAudioUrlFromApi(youtubeUrl, videoId, rapidApiKey) {
 	const mp3Url = `/audio/${videoId}.mp3`;
 	if (fs.existsSync(mp3Path)) return mp3Url;
 
-	// 1. Solicitar conversión
+	// 1. Solicitar conversión usando query parameters
 	const apiUrl = 'https://youtube-to-mp315.p.rapidapi.com/download';
 	const headers = {
 		'X-RapidAPI-Host': 'youtube-to-mp315.p.rapidapi.com',
-		'X-RapidAPI-Key': rapidApiKey,
-		'Content-Type': 'application/json'
+		'X-RapidAPI-Key': rapidApiKey
 	};
 	try {
-		const { data } = await axios.post(apiUrl, {
-			url: youtubeUrl,
-			format: 'mp3',
-			quality: 0
-		}, { headers });
+		const params = new URLSearchParams({ url: youtubeUrl, format: 'mp3' });
+		const { data } = await axios.post(`${apiUrl}?${params.toString()}`, null, { headers });
 		if (data.status === 'AVAILABLE' && data.downloadUrl) {
 			await downloadFile(data.downloadUrl, mp3Path);
 			return mp3Url;
