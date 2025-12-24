@@ -23,7 +23,8 @@ export async function getAudioUrl(videoId) {
 	if (cached) return cached;
 
 	// yt-dlp debe estar instalado en el entorno de Render
-	const cmd = `yt-dlp -g --cookies cookies.txt -f "bestaudio/best" --no-playlist --no-warnings https://www.youtube.com/watch?v=${videoId}`;
+	// Forzar solo audio directo (no HLS/m3u8)
+	const cmd = `yt-dlp -g --cookies cookies.txt -f "bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio" --no-playlist --no-warnings https://www.youtube.com/watch?v=${videoId}`;
 	return new Promise((resolve) => {
 		exec(cmd, { timeout: 10000 }, (err, stdout, stderr) => {
 			if (err) {
@@ -33,11 +34,11 @@ export async function getAudioUrl(videoId) {
 				return resolve(null);
 			}
 			const url = stdout.trim();
-			if (url) {
+			if (url && !url.includes('.m3u8') && !url.includes('playlist')) {
 				setCached(cacheKey, url, 300); // 5 minutos
 				resolve(url);
 			} else {
-				console.error('yt-dlp no devolvió una URL válida. stdout:', stdout, 'stderr:', stderr);
+				console.error('yt-dlp devolvió una URL no compatible con Alexa (HLS/m3u8 o playlist). stdout:', stdout, 'stderr:', stderr);
 				resolve(null);
 			}
 		});
